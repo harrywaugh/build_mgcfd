@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export ARCH=TX2           # Build architecture, must be one of [TX2, A64FX]
-export COMPILER=clang     # Compiler, must be one of [clang, gnu, cray]
+export COMPILER=cray      # Compiler, must be one of [clang, gnu, cray]
 export MGCFD_CC=cc        # C command
 export MGCFD_MPICC=cc     # MPICC command
 export MGCFD_CXX=CC       # C++ command
@@ -78,8 +78,8 @@ then
     cd hdf5-1.10.5
     ./configure CC=$MGCFD_CXX FC=$MGCFD_MPIFC CXX=$MGCFD_MPICXX --enable-parallel --enable-fortran --prefix=$HDF5_INSTALL_DIR --with-pic
 
-    sed -i -e 's/wl=''/wl='-Wl,'/g' libtool
-    sed -i -e 's/pic_flag=''/pic_flag=' -fPIC -DPIC'/g' libtool
+    sed -i -e 's/wl=""/wl="-Wl,"/g' libtool
+    sed -i -e 's/pic_flag=""/pic_flag=" -fPIC -DPIC"/g' libtool
 
     make
     make install
@@ -144,14 +144,14 @@ printf 'Building OP2-Common...\n'
 git clone https://github.com/OP-DSL/OP2-Common.git
 cd OP2-Common/op2/c/
 
-OP2_COMPILER=$COMPILER
-CPP_WRAPPER=$MGCFD_CXX
-MPICPP_WRAPPER=$MGCFD_MPICXX
-OP2_INSTALL_PATH=$TOP_DIR/OP2-Common/op2/
-MPI_INSTALL_PATH=$MPI_DIR
-PARMETIS_INSTALL_PATH=$PARMETIS_INSTALL_DIR
-HDF5_INSTALL_PATH=$HDF5_DIR
-PTSCOTCH_INSTALL_PATH=$SCOTCH_INSTALL_DIR
+export OP2_COMPILER=$COMPILER
+export CPP_WRAPPER=$MGCFD_CXX
+export MPICPP_WRAPPER=$MGCFD_MPICXX
+export OP2_INSTALL_PATH=$TOP_DIR/OP2-Common/op2/
+export MPI_INSTALL_PATH=$MPI_DIR
+export PARMETIS_INSTALL_PATH=$PARMETIS_INSTALL_DIR
+export HDF5_INSTALL_PATH=$HDF5_DIR
+export PTSCOTCH_INSTALL_PATH=$SCOTCH_INSTALL_DIR
 printf "LD PATHS:\n\tCC: $OP2_COMPILER\n\tOP2: $OP2_INSTALL_PATH\n\tMPI: $MPI_INSTALL_PATH\n\tPARMETIS: $PARMETIS_INSTALL_PATH\n\tHDF5: $HDF5_INSTALL_PATH\n\tPTSCOTCH: $PTSCOTCH_INSTALL_PATH\n"
 
 export LD_LIBRARY_PATH=$MPI_INSTALL_PAT/lib:$PARMETIS_INSTALL_PATH/lib:$HDF5_INSTALL_PATH/lib:$PTSCOTCH_INSTALL_PATH/lib:$LD_LIBRARY_PATH
