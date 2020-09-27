@@ -166,6 +166,16 @@ printf 'Building MG-CFD-OP2...\n'
 git clone https://github.com/warwick-hpsc/MG-CFD-app-OP2
 cd MG-CFD-app-OP2
 
+if [ $ARCH = "TX2"]
+then
+    export VEC_LENGTH=2
+    export CFLAGS="–ffast-math -march=native" 
+fi
+
+sed -i "s/#define SIMD_VEC 4/#define SIMD_VEC $VEC_LENGTH/g" vec/_veckernels.cpp
+
+
+
 make mpi_vec
 
 
