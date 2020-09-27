@@ -10,49 +10,47 @@ MGCFD_FC=ftn       # C++ command
 MGCFD_MPIFC=ftn    # MPIC++ command
 CRAY_SYSTEM=1      # Cray sytem? 0 or 1
 MPI_DIR=
-BUILD_HDF5=1
-
-
-# If using cray system, load programming environments and HDF5
-if [$CRAY_SYTEM -eq 1]
-then
-    PRGENV=`module -t list 2>&1 | grep PrgEnv`
-    if [$COMPILER=clang]
-    then
-        module swap $PRGENV PrgEnv-allinea
-        module load tools/arm-compiler/20.1
-    fi
-    if [$COMPILER=gnu]
-    then
-        module swap $PRGENV PrgEnv-gnu
-    fi
-    if [$COMPILER=cray]
-    then
-        module swap $PRGENV PrgEnv-cray
-    fi
-    BUILD_HDF5=0
-    module load cray-hdf5-parallel
-    MPI_DIR=$MPICH_DIR
-fi
-
-echo "Currently loaded modules:"
-module li
-echo ""
-echo ""
+BUILD_HDF5=1       # Default leave at 1
 
 
 ###############
 ## Set up build
 ###############
-printf "Script options: "
-printf "ARCH:         $ARCH"
-printf "COMPILER:     $COMPILER"
-printf "MGCFD_CC:     $MGCFD_CC"
-printf "MGCFD_MPICC:  $MGCFD_MPICC"
-printf "MGCFD_CXX:    $MGCFD_CXX"
-printf "MGCFD_MPICXX: $MGCFD_MPICXX"
-printf "CRAY_SYSTEM:  $CRAY_SYSTEM"
-printf "BUILD_HDF5:   $BUILD_HDF5"
+printf "Script options: \n"
+printf "ARCH:         $ARCH\n"
+printf "COMPILER:     $COMPILER\n"
+printf "MGCFD_CC:     $MGCFD_CC\n"
+printf "MGCFD_MPICC:  $MGCFD_MPICC\n"
+printf "MGCFD_CXX:    $MGCFD_CXX\n"
+printf "MGCFD_MPICXX: $MGCFD_MPICXX\n"
+printf "CRAY_SYSTEM:  $CRAY_SYSTEM\n"
+printf "BUILD_HDF5:   $BUILD_HDF5\n"
+echo ""
+
+# If using cray system, load programming environments and HDF5
+if [[ $CRAY_SYSTEM == 1 ]]
+then
+    PRGENV=`module -t list 2>&1 | grep PrgEnv`
+    echo "$PRGENV"
+    if [ $COMPILER = "clang" ]
+    then
+        module swap $PRGENV PrgEnv-allinea
+        module load tools/arm-compiler/20.1
+    fi
+    if [ $COMPILER = "gnu" ]
+    then
+        module swap $PRGENV PrgEnv-gnu
+    fi
+    if [ $COMPILER = "cray" ]
+    then
+        module swap $PRGENV PrgEnv-cray
+    fi
+    export BUILD_HDF5=0
+    module load cray-hdf5-parallel
+    MPI_DIR=$MPICH_DIR
+fi
+
+module li
 echo ""
 
 
@@ -63,19 +61,19 @@ cd $TOP_DIR
 ###############
 ## Build HDF5
 ###############
-printf "Building HDF5...\n"
-if [$BUILD_HDF5 -eq 0]
+if [[ $BUILD_HDF5 == 1 ]]
 then
+    printf "Building HDF5...\n"
     mkdir HDF5
     cd HDF5
     mkdir build install
     HDF5_BUILD_DIR=$(realpath build)
     HDF5_INSTALL_DIR=$(realpath install)
 
-    cd $BUILD_DIR
+    cd $HDF5_BUILD_DIR
     wget https://s3.amazonaws.com/hdf-wordpress-1/wp-content/uploads/manual/HDF5/HDF5_1_10_5/source/hdf5-1.10.5.tar.gz
-    tar -xf hdf5-1.10.5.tar
-
+    tar -xf hdf5-1.10.5.tar.gz
+    
     cd hdf5-1.10.5
     ./configure CC=$MGCFD_CXX FC=$MGCFD_MPIFC CXX=$MGCFD_MPICXX --enable-parallel --enable-fortran --prefix=$HDF5_INSTALL_DIR --with-pic
 
@@ -86,6 +84,8 @@ then
     make install
     HDF5_DIR=$HDF5_INSTALL_DIR
 fi
+
+exit 1
 
 ###############
 ## Build PARMETIS
